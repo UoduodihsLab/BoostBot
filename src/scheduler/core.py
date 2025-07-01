@@ -20,6 +20,7 @@ async def exec_task(boost_link: BoostLinkModel, account_objs: List[AccountModel]
             await booster.connect()
         except Exception as e:
             logger.error(f'{account_obj.phone}: {e}')
+            continue
 
         if not booster.is_connected():
             logger.info(f'{account_obj.phone} - Telegram 服务器连接失败')
