@@ -10,7 +10,7 @@ async def home_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     keyboard = [
         [
-            InlineKeyboardButton('助力链接列表', callback_data='boost_links_view'),
+            InlineKeyboardButton('创建助力任务', callback_data='boost_links_view'),
             InlineKeyboardButton('上传助力链接', callback_data='upload_boost_links')
         ],
         [
@@ -21,4 +21,12 @@ async def home_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(text, reply_markup=reply_markup)
+    if update.callback_query:
+        await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
+    else:
+        await update.message.reply_text(text=text, reply_markup=reply_markup)
+
+
+@push_navigation_stack
+async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    pass
