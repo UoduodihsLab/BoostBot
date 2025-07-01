@@ -6,4 +6,6 @@ migrations/
 pyproject.toml
 
 
+draft.py
+
 .DS_Store

@@ -2,6 +2,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 from tortoise import run_async
 
 import settings
+from src.bot.navigation import go_back
 from src.bot.views import *
 from src.database import connect_db, close_db
 from src.utils.logger import get_console_logger
@@ -24,6 +25,7 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler('start', start))
 
     app.add_handler(CallbackQueryHandler(boost_links_view, 'boost_links_view'))
+    app.add_handler(CallbackQueryHandler(go_back, 'go_back'))
 
     try:
         app.run_webhook(
