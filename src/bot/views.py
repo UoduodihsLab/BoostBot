@@ -33,7 +33,7 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = '当前无频道链接, 请上传后再来'
     keyboard = [
         [
-            InlineKeyboardButton('返回')
+            InlineKeyboardButton('返回', callback_data='go_back')
         ]
     ]
     boost_links = [boost_link_obj.param for boost_link_obj in await BoostLinkModel.filter(is_deleted=False)]
