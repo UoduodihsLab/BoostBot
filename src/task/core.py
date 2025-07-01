@@ -9,7 +9,7 @@ async def create_campaign(boost_link_ids: BoostLinkModel):
     for boost_link_id in boost_link_ids:
         boost_link = await BoostLinkModel.get_or_none(id=boost_link_id, is_deleted=False)
         if boost_link is None:
-            return False, {'message': f'助力链接 {boost_link} 不存在'}
+            return False, {'message': f'助力链接 {boost_link_id} 不存在'}
 
         campaign = await CampaignModel.get_or_none(boost_link_id=boost_link_id, status=1)
         if campaign is not None:

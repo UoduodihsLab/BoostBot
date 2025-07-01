@@ -1,9 +1,11 @@
 from datetime import datetime, timezone
+from typing import List
 
 from tortoise import Tortoise
+from tortoise.expressions import Q
 
 import settings
-from models import BoostLinkAccountUsageModel, AccountModel
+from models import BoostLinkAccountUsageModel, AccountModel, BoostLinkModel, CampaignModel
 from src.utils.logger import get_console_logger
 
 logger = get_console_logger()
@@ -49,3 +51,19 @@ async def get_available_accounts(boost_link_id: int):
         available_accounts.append(account)
 
     return available_accounts
+
+
+async def boost_link_ids_exist(boost_link_ids: List[int]):
+    for boost_link_id in boost_link_ids:
+        boost_link_obj = await BoostLinkModel.get_or_none(id=boost_link_id, is_deleted=False)
+        if boost_link_obj is None:
+            return False, f'{boost_link_id} 不存在'
+
+    return True
+
+
+async def get_active_campaigns():
+    query = Q(status=0) | Q(status=1)
+    campaigns = await CampaignModel.filter(query)
+
+    return campaigns

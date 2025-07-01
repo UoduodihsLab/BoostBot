@@ -84,6 +84,7 @@ async def exec_task(boost_link: BoostLinkModel, account_objs: List[AccountModel]
 
 
 async def schedule_tasks():
+    task_ids = []
     while True:
         campaign = await CampaignModel.filter(status=0).select_for_update().first()
 
@@ -105,5 +106,8 @@ async def schedule_tasks():
 
             campaign.status = 2
             await campaign.save(update_fields=['status'])
+            task_ids.append(campaign.id)
         except Exception as e:
             logger.error(f'{e}')
+
+    return task_ids

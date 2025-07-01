@@ -1,9 +1,20 @@
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
+from telegram import Update
+from telegram.ext import (
+    ContextTypes,
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    MessageHandler,
+    filters
+)
 from tortoise import run_async
 
 import settings
+from src.bot.boost_entry import start_boost
+from src.bot.conversations import BOOST_CONVERSATION
 from src.bot.navigation import go_back
-from src.bot.views import *
+from src.bot.upload import handle_upload_boost_link_file, handle_upload_account_file
+from src.bot.views import home_view, boost_links_view
 from src.database import connect_db, close_db
 from src.utils.logger import get_console_logger
 
@@ -26,6 +37,12 @@ if __name__ == '__main__':
 
     app.add_handler(CallbackQueryHandler(boost_links_view, 'boost_links_view'))
     app.add_handler(CallbackQueryHandler(go_back, 'go_back'))
+    app.add_handler(CallbackQueryHandler(start_boost, 'start_boost'))
+
+    app.add_handler(MessageHandler(filters.Document.TXT, handle_upload_account_file))
+    app.add_handler(MessageHandler(filters.Document.ZIP, handle_upload_boost_link_file))
+
+    app.add_handler(BOOST_CONVERSATION)
 
     try:
         app.run_webhook(
