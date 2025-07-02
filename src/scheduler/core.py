@@ -111,34 +111,23 @@ async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
 
 
 async def schedule_tasks():
-    task_ids = []
     while True:
         campaign = await CampaignModel.filter(status=0).select_for_update().first()
-
         if campaign is None:
             break
-        boost_link = await BoostLinkModel.get_or_none(id=campaign.boost_link_id, is_deleted=False)
 
+        boost_link = await BoostLinkModel.get_or_none(id=campaign.boost_link_id, is_deleted=False)
         if boost_link is None:
             break
-
-        account_objs = await get_available_accounts(boost_link.id)
-
-        account_objs_count = len(account_objs)
-
-        campaign.total_assigned = account_objs_count
-        await campaign.save(update_fields=['total_assigned'])
 
         try:
             campaign.status = 1
             campaign.requested_at = datetime.now(timezone.utc)
             await campaign.save(update_fields=['status', 'requested_at'])
 
-            await exec_task(boost_link, account_objs, campaign)
+            await exec_task(boost_link, campaign)
 
             campaign.status = 2
             await campaign.save(update_fields=['status'])
-            task_ids.append(campaign.id)
         except Exception as e:
             logger.error(f'{e}')
-    return task_ids
