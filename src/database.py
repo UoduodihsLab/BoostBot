@@ -116,7 +116,8 @@ async def get_next_available_account_today(boost_link_id: int) -> AccountModel |
             for usage in await BoostLinkAccountUsageModel.filter(boost_link_id=boost_link_id, boost_at=today)
         ]
         query = (
-                Q(status=0)
+                Q(is_deleted=False)
+                & Q(status=0)
                 & (Q(flood_expire_at=None) | Q(flood_expire_at__lt=now))
                 & Q(daily_boost_count__lt=5)
         )
