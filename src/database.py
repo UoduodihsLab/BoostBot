@@ -74,7 +74,7 @@ async def get_active_campaigns():
 async def statistics_account():
     account_queryset = AccountModel.filter(is_deleted=False, status=0)
     total_count = await account_queryset.count()
-    invalid_count = await account_queryset.filter(status=1).count()
+    invalid_count = await AccountModel.filter(status=1, is_deleted=False).count()
 
     now = datetime.now(timezone.utc)
     flood_count = await account_queryset.filter(flood_expire_at__gt=now).count()
