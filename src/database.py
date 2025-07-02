@@ -32,7 +32,7 @@ async def get_available_accounts(boost_link_id: int):
     used_account_ids_today = [
         account.id for account in await (
             BoostLinkAccountUsageModel
-            .filter(boost_link_id=boost_link_id, boost_at__lt=today)
+            .filter(boost_link_id=boost_link_id, boost_at=today)
         )
     ]
 
