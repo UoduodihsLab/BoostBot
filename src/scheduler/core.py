@@ -12,8 +12,10 @@ logger = get_console_logger()
 
 
 async def exec_task(campaign_obj: CampaignModel):
+    now = datetime.now(timezone.utc)
     campaign_obj.status = 1
-    await campaign_obj.save(update_fields=['status'])
+    campaign_obj.requested_at = now
+    await campaign_obj.save(update_fields=['status', 'requested_at'])
 
     boost_link_obj = await BoostLinkModel.get_or_none(id=campaign_obj.boost_link_id)
     account_obj = await get_next_available_account_today(boost_link_obj.id)
