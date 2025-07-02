@@ -11,11 +11,15 @@ from src.worker.booster import Booster
 logger = get_console_logger()
 
 
-async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
-    account_obj = await get_next_available_account_today(boost_link.id)
+async def exec_task(campaign_obj: CampaignModel):
+    campaign_obj.status = 1
+    await campaign_obj.save(update_fields=['status'])
+
+    boost_link_obj = await BoostLinkModel.get_or_none(id=campaign_obj.boost_link_id)
+    account_obj = await get_next_available_account_today(boost_link_obj.id)
     while True:
         if account_obj is None:
-            logger.info(f'{boost_link.param} - 当前已无可用账号')
+            logger.info(f'{boost_link_obj.param} - 当前已无可用账号')
             break
 
         booster = Booster(account_obj.session_file, settings.API_ID, settings.API_HASH)
@@ -29,7 +33,7 @@ async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
             account_obj.using_status = 0
             await account_obj.save(update_fields=['using_status'])
 
-            account_obj = await get_next_available_account_today(boost_link.id)
+            account_obj = await get_next_available_account_today(boost_link_obj.id)
             continue
 
         if not booster.is_connected():
@@ -40,7 +44,7 @@ async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
             account_obj.using_status = 0
             await account_obj.save(update_fields=['using_status'])
 
-            account_obj = await get_next_available_account_today(boost_link.id)
+            account_obj = await get_next_available_account_today(boost_link_obj.id)
             continue
 
         logger.info(f'{account_obj.phone} - Telegram 服务器连接成功')
@@ -55,10 +59,10 @@ async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
             campaign_obj.fail_count += 1
             await campaign_obj.save(update_fields=['fail_count'])
 
-            account_obj = await get_next_available_account_today(boost_link.id)
+            account_obj = await get_next_available_account_today(boost_link_obj.id)
             continue
 
-        status, message = await booster.boost(boost_link.bot, boost_link.command, boost_link.param)
+        status, message = await booster.boost(boost_link_obj.bot, boost_link_obj.command, boost_link_obj.param)
 
         # TODO: 判断客户端是否还在保持连接
         await booster.disconnect()
@@ -72,7 +76,7 @@ async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
 
             today = datetime.now(timezone.utc).today()
             boost_link_account_usage_obj = BoostLinkAccountUsageModel(
-                boost_link_id=boost_link.id,
+                boost_link_id=boost_link_obj.id,
                 account_id=account_obj.id,
                 boost_at=today
             )
@@ -105,29 +109,20 @@ async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
         account_obj.using_status = 0
         await account_obj.save(update_fields=['using_status'])
 
-        account_obj = await get_next_available_account_today(boost_link.id)
+        account_obj = await get_next_available_account_today(boost_link_obj.id)
 
         await asyncio.sleep(10)
 
+    campaign_obj.status = 2
+    await campaign_obj.save(update_fields=['status'])
+
 
 async def schedule_tasks():
-    while True:
-        campaign = await CampaignModel.filter(status=0).select_for_update().first()
-        if campaign is None:
-            break
+    campaign_objs = await CampaignModel.filter(status=0)
 
-        boost_link = await BoostLinkModel.get_or_none(id=campaign.boost_link_id, is_deleted=False)
-        if boost_link is None:
-            break
+    tasks = []
+    for campaign_obj in campaign_objs:
+        t = asyncio.create_task(exec_task(campaign_obj))
+        tasks.append(t)
 
-        try:
-            campaign.status = 1
-            campaign.requested_at = datetime.now(timezone.utc)
-            await campaign.save(update_fields=['status', 'requested_at'])
-
-            await exec_task(boost_link, campaign)
-
-            campaign.status = 2
-            await campaign.save(update_fields=['status'])
-        except Exception as e:
-            logger.error(f'{e}')
+    await asyncio.gather(*tasks)
