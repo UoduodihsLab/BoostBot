@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes
 
 from models import *
 from src.bot.navigation import push_navigation_stack
-from src.database import statistics_account, get_active_campaigns
+from src.database import statistics_account, get_running_tasks, get_account_total_count
 
 
 @push_navigation_stack
@@ -86,32 +86,26 @@ async def accounts_statistics_view(update: Update, context: ContextTypes.DEFAULT
     await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
 
 
-async def task_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    campaigns = await get_active_campaigns()
+async def running_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tasks = await get_running_tasks()
+    account_total_count = await get_account_total_count()
 
     text = ''
-    for campaign in campaigns:
-        boost_link_obj = await BoostLinkModel.get_or_none(id=campaign.boost_link_id)
-        status_text = ''
-        if campaign.status == 0:
-            status_text = '等待执行'
-        elif campaign.status == 1:
-            status_text = '正在运行'
-        else:
-            status_text = '执行完毕'
+    for task in tasks:
+        boost_link_obj = await BoostLinkModel.get_or_none(id=task.boost_link_id)
         text += (
-            f'任务id: {campaign.id}\n'
-            f'状态: {status_text}\n'
+            f'任务id: {task.id}\n'
+            f'- 状态: 执行中\n'
             f'- 链接: {boost_link_obj.param}\n'
-            f'- 分配账号总数: {campaign.total_assigned}\n'
-            f'- 成功次数: {campaign.success_count}\n'
-            f'- 失败次数: {campaign.fail_count}\n'
-            f'- 重复次数: {campaign.repeat_count}\n'
+            f'- 当前账号总数: {account_total_count}\n'
+            f'- 成功次数: {task.success_count}\n'
+            f'- 失败次数: {task.fail_count}\n'
+            f'- 重复次数: {task.repeat_count}\n'
             f'------------------------------\n'
         )
 
     if text == '':
-        text = '暂无任务'
+        text = '暂无执行中的任务'
 
     await context.bot.send_message(update.effective_chat.id, text=text)
 

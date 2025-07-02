@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.bot.views import home_view, task_list_view, task_detail_view, help_view
+from src.bot.views import home_view, running_list_view, task_detail_view, help_view
 from src.database import get_campaigns_by_ids, delete_accounts
 from src.utils.logger import get_console_logger
 
@@ -16,8 +16,8 @@ async def help_(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await help_view(update, context)
 
 
-async def list_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await task_list_view(update, context)
+async def running_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await running_list_view(update, context)
 
 
 async def query_task_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):

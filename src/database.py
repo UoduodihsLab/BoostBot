@@ -27,35 +27,6 @@ async def close_db():
     logger.info("Database disconnected.")
 
 
-async def get_available_accounts(boost_link_id: int):
-    now = datetime.now(tz=timezone.utc)
-    today = now.today()
-    used_account_ids_today = [
-        account.id for account in await (
-            BoostLinkAccountUsageModel
-            .filter(boost_link_id=boost_link_id, boost_at=today)
-        )
-    ]
-
-    query = (
-            Q(status=0)
-            & (Q(flood_expire_at__lt=now) | Q(flood_expire_at=None))
-            & Q(daily_boost_count__lt=5)
-            & Q(is_deleted=False)
-    )
-    valid_accounts_count = await AccountModel.filter(query)
-
-    available_accounts = []
-
-    for account in valid_accounts_count:
-        if account.id in used_account_ids_today:
-            continue
-
-        available_accounts.append(account)
-
-    return available_accounts
-
-
 async def boost_link_ids_exist(boost_link_ids: List[int]):
     for boost_link_id in boost_link_ids:
         boost_link_obj = await BoostLinkModel.get_or_none(id=boost_link_id, is_deleted=False)
@@ -65,11 +36,12 @@ async def boost_link_ids_exist(boost_link_ids: List[int]):
     return True, f'检测成功'
 
 
-async def get_active_campaigns():
-    query = Q(status=0) | Q(status=1)
-    campaigns = await CampaignModel.filter(query)
+async def get_running_tasks():
+    return await CampaignModel.filter(status=1)
 
-    return campaigns
+
+async def get_account_total_count():
+    return await AccountModel.filter(is_deleted=False).count()
 
 
 async def statistics_account():

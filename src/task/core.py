@@ -1,9 +1,6 @@
 from typing import List
 
-from tortoise.expressions import Q
-
 from models import *
-from src.database import get_available_accounts
 from src.utils.logger import get_console_logger
 
 logger = get_console_logger()
