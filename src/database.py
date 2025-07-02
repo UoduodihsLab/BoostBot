@@ -3,6 +3,7 @@ from typing import List
 
 from tortoise import Tortoise
 from tortoise.expressions import Q
+from tortoise.transactions import in_transaction
 
 import settings
 from models import BoostLinkAccountUsageModel, AccountModel, BoostLinkModel, CampaignModel
@@ -104,3 +105,34 @@ async def delete_accounts():
     await AccountModel.filter(is_deleted=False).update(is_deleted=True)
 
     return True, 'ok'
+
+
+async def get_next_available_account_today(boost_link_id: int) -> AccountModel | None:
+    async with in_transaction() as conn:
+        now = datetime.now(timezone.utc)
+        today = now.today()
+        used_account_ids_today = [
+            usage.account_id
+            for usage in await BoostLinkAccountUsageModel.filter(boost_link_id=boost_link_id, boost_at=today)
+        ]
+        query = (
+                Q(status=0)
+                & (Q(flood_expire_at=None) | Q(flood_expire_at__lt=now))
+                & Q(daily_boost_count__lt=5)
+        )
+        account_obj = (
+            await AccountModel
+            .filter(query)
+            .order_by('last_used_at')
+            .limit(1)
+            .select_for_update()
+            .first()
+        )
+
+        if account_obj is not None and account_obj.id not in used_account_ids_today:
+            account_obj.status = 2
+            account_obj.last_used_at = now
+            await account_obj.save(using_db=conn, update_fields=['status', 'last_used_at'])
+            return account_obj
+
+        return None
