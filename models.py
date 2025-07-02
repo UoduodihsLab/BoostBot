@@ -6,11 +6,13 @@ class AccountModel(models.Model):
     phone = fields.CharField(max_length=32, unique=True)
     session_file = fields.CharField(max_length=255)
 
-    # 0=>正常 1=>无效 2=>使用中
+    # 0=>正常 1=>无效
     status = fields.SmallIntField(default=0)
     flood_expire_at = fields.DatetimeField(null=True)
     daily_boost_count = fields.IntField(default=0)
 
+    # 0=>就绪 1=>使用中
+    using_status = fields.SmallIntField(default=0)
     last_used_at = fields.DatetimeField(auto_now_add=True)
 
     is_deleted = fields.BooleanField(default=False)

@@ -117,6 +117,7 @@ async def get_next_available_account_today(boost_link_id: int) -> AccountModel |
         ]
         query = (
                 Q(is_deleted=False)
+                & Q(using_status=0)
                 & Q(status=0)
                 & (Q(flood_expire_at=None) | Q(flood_expire_at__lt=now))
                 & Q(daily_boost_count__lt=5)
@@ -131,9 +132,9 @@ async def get_next_available_account_today(boost_link_id: int) -> AccountModel |
         )
 
         if account_obj is not None and account_obj.id not in used_account_ids_today:
-            account_obj.status = 2
+            account_obj.using_status = 1
             account_obj.last_used_at = now
-            await account_obj.save(using_db=conn, update_fields=['status', 'last_used_at'])
+            await account_obj.save(using_db=conn, update_fields=['using_status', 'last_used_at'])
             return account_obj
 
         return None

@@ -1,10 +1,9 @@
 import asyncio
 from datetime import datetime, timezone, timedelta
-from typing import List
 
 import settings
-from models import AccountModel, BoostLinkModel, CampaignModel, BoostLinkAccountUsageModel
-from src.database import get_available_accounts
+from models import BoostLinkModel, CampaignModel, BoostLinkAccountUsageModel
+from src.database import get_next_available_account_today
 from src.status import *
 from src.utils.logger import get_console_logger
 from src.worker.booster import Booster
@@ -12,8 +11,13 @@ from src.worker.booster import Booster
 logger = get_console_logger()
 
 
-async def exec_task(boost_link: BoostLinkModel, account_objs: List[AccountModel], campaign_obj: CampaignModel):
-    for account_obj in account_objs:
+async def exec_task(boost_link: BoostLinkModel, campaign_obj: CampaignModel):
+    account_obj = await get_next_available_account_today(boost_link.id)
+    while True:
+        if account_obj is None:
+            logger.info(f'{boost_link.param} - 当前已无可用账号')
+            break
+
         booster = Booster(account_obj.session_file, settings.API_ID, settings.API_HASH)
         logger.info(f'{account_obj.phone} - 正在连接 Telegram 服务器...')
 
@@ -21,27 +25,42 @@ async def exec_task(boost_link: BoostLinkModel, account_objs: List[AccountModel]
             await booster.connect()
         except Exception as e:
             logger.error(f'{account_obj.phone}: {e}')
+
+            account_obj.using_status = 0
+            await account_obj.save(update_fields=['using_status'])
+
+            account_obj = await get_next_available_account_today(boost_link.id)
             continue
 
         if not booster.is_connected():
             logger.info(f'{account_obj.phone} - Telegram 服务器连接失败')
             campaign_obj.fail_count += 1
             await campaign_obj.save(update_fields=['fail_count'])
+
+            account_obj.using_status = 0
+            await account_obj.save(update_fields=['using_status'])
+
+            account_obj = await get_next_available_account_today(boost_link.id)
             continue
 
         logger.info(f'{account_obj.phone} - Telegram 服务器连接成功')
 
         if not await booster.is_user_authorized():
             logger.info(f'{account_obj.phone}: unauthorized')
+
             account_obj.status = 1
-            await account_obj.save(update_fields=['status'])
+            account_obj.using_status = 0
+            await account_obj.save(update_fields=['status', 'using_status'])
 
             campaign_obj.fail_count += 1
             await campaign_obj.save(update_fields=['fail_count'])
+
+            account_obj = await get_next_available_account_today(boost_link.id)
             continue
 
         status, message = await booster.boost(boost_link.bot, boost_link.command, boost_link.param)
 
+        # TODO: 判断客户端是否还在保持连接
         await booster.disconnect()
 
         if status == BOOST_SUCCESS:
@@ -61,7 +80,7 @@ async def exec_task(boost_link: BoostLinkModel, account_objs: List[AccountModel]
 
         elif status == BOOST_FAILED:
             campaign_obj.fail_count += 1
-            await campaign_obj.save(update_fields=['status'])
+            await campaign_obj.save(update_fields=['fail_count'])
 
         elif status == BOOST_REPEATED:
             campaign_obj.repeat_count += 1
@@ -82,6 +101,11 @@ async def exec_task(boost_link: BoostLinkModel, account_objs: List[AccountModel]
 
             campaign_obj.fail_count += 1
             await campaign_obj.save(update_fields=['fail_count'])
+
+        account_obj.using_status = 0
+        await account_obj.save(update_fields=['using_status'])
+
+        account_obj = await get_next_available_account_today(boost_link.id)
 
         await asyncio.sleep(10)
 
