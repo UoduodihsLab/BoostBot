@@ -103,7 +103,7 @@ async def task_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f'任务id: {campaign.id}\n'
             f'状态: {status_text}\n'
             f'- 链接: {boost_link_obj.param}\n'
-            f'- 可用账号总数: {campaign.total_assigned}\n'
+            f'- 分配账号总数: {campaign.total_assigned}\n'
             f'- 成功次数: {campaign.success_count}\n'
             f'- 失败次数: {campaign.fail_count}\n'
             f'- 重复次数: {campaign.repeat_count}\n'
