@@ -11,7 +11,7 @@ from tortoise import run_async
 
 import settings
 from src.bot.boost_entry import start_boost
-from src.bot.commands import start, help_, list_tasks, query_task_by_id
+from src.bot.commands import start, help_, list_tasks, query_task_by_id, clear_accounts
 from src.bot.conversations import BOOST_CONVERSATION
 from src.bot.navigation import go_back
 from src.bot.upload import handle_upload_boost_link_file, handle_upload_account_file
@@ -25,8 +25,9 @@ logger = get_console_logger()
 async def post_init(app: Application):
     commands = [
         BotCommand('start', '🚀启动机器人'),
-        BotCommand('list_tasks', '📒 查看任务执行状态'),
-        BotCommand('task_by_id', '📒 查询任务'),
+        BotCommand('list_tasks', '👀 查看任务执行状态'),
+        BotCommand('task_by_id', '🔍 查询任务'),
+        BotCommand('clear_account', '🧹 清空账号'),
         BotCommand('help', '🔔 查看帮助')
     ]
 
@@ -53,6 +54,7 @@ def run_bot():
     app.add_handler(CommandHandler('help', help_))
     app.add_handler(CommandHandler('list_tasks', list_tasks))
     app.add_handler(CommandHandler('task_by_id', query_task_by_id))
+    app.add_handler(CommandHandler('clear_account', clear_accounts))
 
     app.add_handler(CallbackQueryHandler(boost_links_view, 'boost_links_view'))
     app.add_handler(CallbackQueryHandler(go_back, 'go_back'))

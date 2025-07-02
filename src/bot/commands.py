@@ -2,7 +2,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from src.bot.views import home_view, task_list_view, task_detail_view, help_view
-from src.database import get_campaigns_by_ids
+from src.database import get_campaigns_by_ids, delete_accounts
 from src.utils.logger import get_console_logger
 
 logger = get_console_logger()
@@ -41,3 +41,15 @@ async def query_task_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     await task_detail_view(update, context, campaign_objs)
+
+
+async def clear_accounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(text='正在清空账号...')
+
+    success, error_message = await delete_accounts()
+
+    if not success:
+        await update.message.reply_text(text=error_message)
+        return
+
+    await update.message.reply_text(text='账号清空成功')

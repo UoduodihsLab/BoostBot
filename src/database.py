@@ -74,7 +74,7 @@ async def get_active_campaigns():
 async def statistics_account():
     account_queryset = AccountModel.filter(is_deleted=False, status=0)
     total_count = await account_queryset.count()
-    invalid_count = await AccountModel.filter(status=1).count()
+    invalid_count = await account_queryset.filter(status=1).count()
 
     now = datetime.now(timezone.utc)
     flood_count = await account_queryset.filter(flood_expire_at__gt=now).count()
@@ -93,3 +93,14 @@ async def get_campaigns_by_ids(campaign_ids: List[int]):
         campaign_objs.append(campaign_obj)
 
     return campaign_objs
+
+
+async def delete_accounts():
+    active_campaign_objs_count = await CampaignModel.filter(Q(status=0) | Q(status=1)).count()
+
+    if active_campaign_objs_count > 0:
+        return False, '当前存在正在执行和等待执行的任务'
+
+    await AccountModel.filter(is_deleted=False).update(is_deleted=True)
+
+    return True, 'ok'
