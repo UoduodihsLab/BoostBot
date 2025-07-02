@@ -1,35 +1,43 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import ContextTypes
 
-from src.bot.views import home_view
-from src.database import get_active_campaigns
-from models import BoostLinkModel
+from src.bot.views import home_view, task_list_view, task_detail_view, help_view
+from src.database import get_campaigns_by_ids
+from src.utils.logger import get_console_logger
+
+logger = get_console_logger()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await home_view(update, context)
 
 
+async def help_(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await help_view(update, context)
+
+
 async def list_tasks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    campaigns = await get_active_campaigns()
+    await task_list_view(update, context)
 
-    text = '暂无任务'
-    for campaign in campaigns:
-        boost_link_obj = await BoostLinkModel.get_or_none(id=campaign.boost_link_id)
-        status_text = ''
-        if campaign.status == 0:
-            status_text = '等待执行'
-        elif campaign.status == 1:
-            status_text = '正在运行'
-        text = (
-            f'任务id: {campaign.id}\n'
-            f'状态: {status_text}\n'
-            f'- 链接编号: {boost_link_obj.param}\n'
-            f'- 可用账号总数: {campaign.total_assigned}\n'
-            f'- 成功次数: {campaign.success_count}\n'
-            f'- 失败次数: {campaign.fail_count}\n'
-            f'- 重复次数: {campaign.repeat_count}\n'
-            f'------------------------------\n'
-        )
 
-    await context.bot.send_message(update.effective_chat.id, text=text)
+async def query_task_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    args = context.args
+
+    if len(args) == 0:
+        await context.bot.send_message(update.effective_chat.id, text='命令后需要带上任务id')
+        return
+
+    try:
+        task_ids = list(map(int, args))
+    except Exception as e:
+        logger.error(e)
+        await context.bot.send_message(update.effective_message.chat_id, text='你的输入包含无效的任务id, 请重新输入')
+        return
+
+    campaign_objs = await get_campaigns_by_ids(task_ids)
+
+    if len(campaign_objs) == 0:
+        await context.bot.send_message(update.effective_message.id, '你输入的任务id没有找到对应的任务')
+        return
+
+    await task_detail_view(update, context, campaign_objs)

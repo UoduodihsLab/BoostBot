@@ -82,3 +82,14 @@ async def statistics_account():
     daily_boost_5count = await account_queryset.filter(daily_boost_count__gte=5).count()
 
     return total_count, invalid_count, flood_count, daily_boost_5count
+
+
+async def get_campaigns_by_ids(campaign_ids: List[int]):
+    campaign_objs = []
+    for campaign_id in campaign_ids:
+        campaign_obj = await CampaignModel.get_or_none(id=campaign_id)
+        if campaign_obj is None:
+            continue
+        campaign_objs.append(campaign_obj)
+
+    return campaign_objs
