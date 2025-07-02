@@ -53,14 +53,16 @@ async def get_completed_tasks():
 
 
 async def statistics_account():
-    account_queryset = AccountModel.filter(is_deleted=False, status=0)
+    account_queryset = AccountModel.filter(is_deleted=False)
+
     total_count = await account_queryset.count()
-    invalid_count = await AccountModel.filter(status=1, is_deleted=False).count()
+
+    invalid_count = await account_queryset.filter(status=1).count()
 
     now = datetime.now(timezone.utc)
-    flood_count = await account_queryset.filter(flood_expire_at__gt=now).count()
+    flood_count = await account_queryset.filter(flood_expire_at__gt=now, status=0).count()
 
-    daily_boost_5count = await account_queryset.filter(daily_boost_count__gte=5).count()
+    daily_boost_5count = await account_queryset.filter(daily_boost_count__gte=5, status=0).count()
 
     return total_count, invalid_count, flood_count, daily_boost_5count
 
