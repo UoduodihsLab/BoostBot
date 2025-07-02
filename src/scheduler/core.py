@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timezone, timedelta
 from typing import List
 
@@ -82,6 +83,8 @@ async def exec_task(boost_link: BoostLinkModel, account_objs: List[AccountModel]
             campaign_obj.fail_count += 1
             await campaign_obj.save(update_fields=['fail_count'])
 
+        await asyncio.sleep(10)
+
 
 async def schedule_tasks():
     task_ids = []
@@ -109,5 +112,4 @@ async def schedule_tasks():
             task_ids.append(campaign.id)
         except Exception as e:
             logger.error(f'{e}')
-
     return task_ids

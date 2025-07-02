@@ -1,10 +1,12 @@
+from typing import List
 from models import *
 from src.utils.logger import get_console_logger
+from src.database import get_available_accounts
 
 logger = get_console_logger()
 
 
-async def create_campaign(boost_link_ids: BoostLinkModel):
+async def create_campaign(boost_link_ids: List[int]):
     campaigns = []
     for boost_link_id in boost_link_ids:
         boost_link = await BoostLinkModel.get_or_none(id=boost_link_id, is_deleted=False)
@@ -16,7 +18,9 @@ async def create_campaign(boost_link_ids: BoostLinkModel):
             # return False, {'message': '此链接已存在进行中的任务, 请勿重复创建'}
             continue
 
-        campaigns.append(CampaignModel(boost_link_id=boost_link_id))
+        valid_accounts = await get_available_accounts(boost_link_id)
+
+        campaigns.append(CampaignModel(boost_link_id=boost_link_id, total_assigned=len(valid_accounts)))
 
     try:
         await CampaignModel.bulk_create(campaigns)

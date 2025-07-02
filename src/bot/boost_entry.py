@@ -38,13 +38,13 @@ async def start_boost(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     await context.bot.send_message(chat_id=update.effective_chat.id, text='正在启动助力任务...')
 
-    if 'background_tasks' not in context.chat_data:
-        context.chat_data['background_tasks'] = set()
+    # if 'background_tasks' not in context.chat_data:
+    #     context.chat_data['background_tasks'] = set()
 
     task = asyncio.create_task(schedule_tasks())
 
-    context.chat_data['background_tasks'].add(task)
-    task.add_done_callback(task_done_cb(update, context))
+    # context.chat_data['background_tasks'].add(task)
+    # task.add_done_callback(task_done_cb(update, context))
 
-    text = '助力任务已成功启动, 你可以输入命令 /running_tasks 查看任务实时进度'
+    text = '助力任务已成功启动, 你可以输入命令 /list_tasks 查看任务实时进度'
     await context.bot.send_message(chat_id=update.effective_chat.id, text=text)

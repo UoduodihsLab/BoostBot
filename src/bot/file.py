@@ -28,13 +28,17 @@ async def unzip_account_files(zip_file_path: str):
 
         with zipfile.ZipFile(BytesIO(zip_data)) as zip_ref:
             account_list = []
+            sessions_dir = os.path.join(settings.BASE_DIR, 'uploads/sessions')
             for member in zip_ref.infolist():
-                sessions_dir = os.path.join(settings.BASE_DIR, 'uploads/sessions')
-                if not os.path.exists(os.path.join(sessions_dir, member.filename)):
+                if not member.filename.endswith('.session'):
+                    continue
+                phone = os.path.split(member.filename)[0].split('/')[0]
+                session_path = os.path.join(sessions_dir, member.filename)
+
+                logger.info(f'{phone} - {session_path}')
+                if not os.path.exists(session_path):
                     zip_ref.extract(member, sessions_dir)
-                    phone = os.path.split(member.filename)[0]
-                    session_path = os.path.join(sessions_dir, member.filename)
-                    account_list.append((phone, session_path))
+                account_list.append((phone, session_path))
 
             return account_list
 

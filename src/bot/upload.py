@@ -18,7 +18,7 @@ async def handle_upload_account_file(update: Update, context: ContextTypes.DEFAU
         await AccountModel.update_or_create(
             phone=account[0],
             defaults={
-                'session_path': account[1],
+                'session_file': account[1],
                 'is_deleted': False
             }
         )

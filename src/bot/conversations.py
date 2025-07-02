@@ -18,9 +18,10 @@ async def on_create_boost_task(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def handle_input_boost_link_ids(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text
+    logger.info(f'Message text: {message_text}')
 
     try:
-        boost_link_ids = list(map(int, ' '.split(message_text)))
+        boost_link_ids = list(map(int, message_text.split(' ')))
     except Exception as e:
         logger.error(e)
         await context.bot.send_message(chat_id=update.effective_chat.id, text='链接编号输入有误， 请重新输入')
