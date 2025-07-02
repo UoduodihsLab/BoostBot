@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes
 
 from models import *
 from src.bot.navigation import push_navigation_stack
-from src.database import statistics_account, get_running_tasks, get_account_total_count
+from src.database import statistics_account, get_running_tasks, get_waiting_tasks, get_completed_tasks, get_account_total_count
 
 
 @push_navigation_stack
@@ -96,6 +96,54 @@ async def running_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text += (
             f'任务id: {task.id}\n'
             f'- 状态: 执行中\n'
+            f'- 链接: {boost_link_obj.param}\n'
+            f'- 当前账号总数: {account_total_count}\n'
+            f'- 成功次数: {task.success_count}\n'
+            f'- 失败次数: {task.fail_count}\n'
+            f'- 重复次数: {task.repeat_count}\n'
+            f'------------------------------\n'
+        )
+
+    if text == '':
+        text = '暂无执行中的任务'
+
+    await context.bot.send_message(update.effective_chat.id, text=text)
+
+
+async def waiting_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tasks = await get_waiting_tasks()
+    account_total_count = await get_account_total_count()
+
+    text = ''
+    for task in tasks:
+        boost_link_obj = await BoostLinkModel.get_or_none(id=task.boost_link_id)
+        text += (
+            f'任务id: {task.id}\n'
+            f'- 状态: 等待中\n'
+            f'- 链接: {boost_link_obj.param}\n'
+            f'- 当前账号总数: {account_total_count}\n'
+            f'- 成功次数: {task.success_count}\n'
+            f'- 失败次数: {task.fail_count}\n'
+            f'- 重复次数: {task.repeat_count}\n'
+            f'------------------------------\n'
+        )
+
+    if text == '':
+        text = '暂无执行中的任务'
+
+    await context.bot.send_message(update.effective_chat.id, text=text)
+
+
+async def completed_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tasks = await get_completed_tasks()
+    account_total_count = await get_account_total_count()
+
+    text = ''
+    for task in tasks:
+        boost_link_obj = await BoostLinkModel.get_or_none(id=task.boost_link_id)
+        text += (
+            f'任务id: {task.id}\n'
+            f'- 状态: 已完成\n'
             f'- 链接: {boost_link_obj.param}\n'
             f'- 当前账号总数: {account_total_count}\n'
             f'- 成功次数: {task.success_count}\n'

@@ -44,6 +44,14 @@ async def get_account_total_count():
     return await AccountModel.filter(is_deleted=False).count()
 
 
+async def get_waiting_tasks():
+    return await CampaignModel.filter(status=0).count()
+
+
+async def get_completed_tasks():
+    return await CampaignModel.filter(status=2).count()
+
+
 async def statistics_account():
     account_queryset = AccountModel.filter(is_deleted=False, status=0)
     total_count = await account_queryset.count()

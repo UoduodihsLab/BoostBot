@@ -11,7 +11,15 @@ from tortoise import run_async
 
 import settings
 from src.bot.boost_entry import start_boost
-from src.bot.commands import start, help_, running_tasks, query_task_by_id, clear_accounts
+from src.bot.commands import (
+    start,
+    help_,
+    running_tasks,
+    waiting_tasks,
+    completed_tasks,
+    query_task_by_id,
+    clear_accounts
+)
 from src.bot.conversations import BOOST_CONVERSATION
 from src.bot.navigation import go_back
 from src.bot.upload import handle_upload_boost_link_file, handle_upload_account_file
@@ -26,6 +34,8 @@ async def post_init(app: Application):
     commands = [
         BotCommand('start', '🚀启动机器人'),
         BotCommand('running_tasks', '👀 查看执行中任务'),
+        BotCommand('waiting_tasks', '👀 查看等待中任务'),
+        BotCommand('completed_tasks', '👀 查看已完成任务'),
         BotCommand('task_by_id', '🔍 查询任务'),
         BotCommand('clear_account', '🧹 清空账号'),
         BotCommand('help', '🔔 查看帮助')
@@ -53,6 +63,8 @@ def run_bot():
     app.add_handler(CommandHandler('start', start))
     app.add_handler(CommandHandler('help', help_))
     app.add_handler(CommandHandler('running_tasks', running_tasks))
+    app.add_handler(CommandHandler('waiting_tasks', waiting_tasks))
+    app.add_handler(CommandHandler('completed_tasks', completed_tasks))
     app.add_handler(CommandHandler('task_by_id', query_task_by_id))
     app.add_handler(CommandHandler('clear_account', clear_accounts))
 
