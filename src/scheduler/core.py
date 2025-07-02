@@ -100,6 +100,11 @@ async def schedule_tasks():
 
         account_objs = await get_available_accounts(boost_link.id)
 
+        account_objs_count = len(account_objs)
+
+        campaign.total_assigned = account_objs_count
+        await campaign.save(update_fields=['total_assigned'])
+
         try:
             campaign.status = 1
             campaign.requested_at = datetime.now(timezone.utc)
