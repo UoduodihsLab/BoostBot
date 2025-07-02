@@ -12,7 +12,7 @@ logger = get_console_logger()
 async def create_campaign(boost_link_ids: List[int]):
     campaign_objs_count = await CampaignModel.filter(Q(status=0) | Q(status=1)).count()
     if campaign_objs_count > 0:
-        return False, {'message': '当前有任务正在进行, 请等待任务运行完毕后再创建任务'}
+        return False, {'message': '当前有任务正在进行, 请等待任务运行完毕后再创建新任务'}
     campaigns = []
     for boost_link_id in boost_link_ids:
         boost_link = await BoostLinkModel.get_or_none(id=boost_link_id, is_deleted=False)
