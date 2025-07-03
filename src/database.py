@@ -133,7 +133,7 @@ async def get_next_available_account_today(boost_link_id: int) -> AccountModel |
                 & Q(is_deleted=False)
                 & Q(using_status=0)
                 & Q(status=0)
-                & (Q(flood_expire_at__is_null=True) | Q(flood_expire_at__lt=now))
+                & (Q(flood_expire_at=None) | Q(flood_expire_at__lt=now))
                 & Q(daily_boost_count__lt=5)
         )
 
