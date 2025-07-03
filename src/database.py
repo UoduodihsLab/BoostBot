@@ -45,11 +45,11 @@ async def get_account_total_count():
 
 
 async def get_waiting_tasks():
-    return await CampaignModel.filter(status=0).count()
+    return await CampaignModel.filter(status=0)
 
 
 async def get_completed_tasks():
-    return await CampaignModel.filter(status=2).count()
+    return await CampaignModel.filter(status=2)
 
 
 async def statistics_account():
