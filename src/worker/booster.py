@@ -35,7 +35,7 @@ class Booster(TelegramClient):
                     if '助力成功' in message_text or '新人' in message_text:
                         return BOOST_SUCCESS, {'error': 'BOOST_SUCCESS', 'detail': {}}
 
-                    if '已经助力过' in message_text:
+                    if '已经助力过' in message_text or '助力频繁' in message_text:
                         return BOOST_REPEATED, {'error': 'BOOST_REPEATED', 'detail': {}}
         except SessionRevokedError as session_revoked_error:
             logger.error(session_revoked_error)
