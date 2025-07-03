@@ -37,7 +37,7 @@ async def post_init(app: Application):
         BotCommand('waiting_tasks', '👀 查看等待中任务'),
         BotCommand('completed_tasks', '👀 查看已完成任务'),
         BotCommand('task_by_id', '🔍 查询任务'),
-        BotCommand('clear_account', '🧹 清空账号'),
+        BotCommand('clear_accounts', '🧹 清空账号'),
         BotCommand('help', '🔔 查看帮助')
     ]
 
