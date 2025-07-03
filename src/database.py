@@ -40,8 +40,31 @@ async def get_running_tasks():
     return await CampaignModel.filter(status=1)
 
 
-async def get_account_total_count():
-    return await AccountModel.filter(is_deleted=False).count()
+async def get_available_account_total_count_daily(boost_link_id: int):
+    now = datetime.now(timezone.utc)
+    today = now.today()
+
+    query = (
+            Q(is_deleted=False)
+            & Q(status=0)
+            & (Q(flood_expire_at=None) | Q(flood_expire_at__lt=now))
+            & Q(daily_boost_count__lt=5)
+    )
+    account_objs = await AccountModel.filter(query)
+
+    used_account_ids_today = [
+        usage.account_id
+        for usage in await BoostLinkAccountUsageModel.filter(boost_link_id=boost_link_id, boost_at=today)
+    ]
+
+    count = 0
+    for account_obj in account_objs:
+        if account_obj.id in used_account_ids_today:
+            continue
+
+        count += 1
+
+    return count
 
 
 async def get_waiting_tasks():

@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes
 
 from models import *
 from src.bot.navigation import push_navigation_stack
-from src.database import statistics_account, get_running_tasks, get_waiting_tasks, get_completed_tasks, get_account_total_count
+from src.database import statistics_account, get_running_tasks, get_waiting_tasks, get_completed_tasks, get_available_account_total_count_daily
 
 
 @push_navigation_stack
@@ -91,16 +91,16 @@ async def accounts_statistics_view(update: Update, context: ContextTypes.DEFAULT
 
 async def running_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await get_running_tasks()
-    account_total_count = await get_account_total_count()
 
     text = ''
     for task in tasks:
         boost_link_obj = await BoostLinkModel.get_or_none(id=task.boost_link_id)
+        account_total_count = await get_available_account_total_count_daily(boost_link_obj.id)
         text += (
             f'任务id: {task.id}\n'
             f'- 状态: 执行中\n'
             f'- 链接: {boost_link_obj.param}\n'
-            f'- 当前账号总数: {account_total_count}\n'
+            f'- 当前可用账号总数: {account_total_count}\n'
             f'- 成功次数: {task.success_count}\n'
             f'- 失败次数: {task.fail_count}\n'
             f'- 重复次数: {task.repeat_count}\n'
@@ -115,11 +115,11 @@ async def running_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def waiting_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await get_waiting_tasks()
-    account_total_count = await get_account_total_count()
 
     text = ''
     for task in tasks:
         boost_link_obj = await BoostLinkModel.get_or_none(id=task.boost_link_id)
+        account_total_count = await get_available_account_total_count_daily(boost_link_obj.id)
         text += (
             f'任务id: {task.id}\n'
             f'- 状态: 等待中\n'
@@ -139,7 +139,6 @@ async def waiting_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 async def completed_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await get_completed_tasks()
-    account_total_count = await get_account_total_count()
 
     text = ''
     for task in tasks:
@@ -148,7 +147,6 @@ async def completed_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYP
             f'任务id: {task.id}\n'
             f'- 状态: 已完成\n'
             f'- 链接: {boost_link_obj.param}\n'
-            f'- 当前账号总数: {account_total_count}\n'
             f'- 成功次数: {task.success_count}\n'
             f'- 失败次数: {task.fail_count}\n'
             f'- 重复次数: {task.repeat_count}\n'
