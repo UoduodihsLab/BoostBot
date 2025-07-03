@@ -47,13 +47,10 @@ async def post_init(app: Application):
 
 
 def run_bot():
-    bot_token = settings.BOT_TOKEN
-    web_hook_url = f'https://boosterbot.uoduodihs.com/{bot_token}'
-
     run_async(connect_db())
     app = (
         ApplicationBuilder()
-        .token(bot_token)
+        .token(settings.BOT_TOKEN)
         .post_init(post_init)
         .read_timeout(30)
         .write_timeout(30)
@@ -80,10 +77,10 @@ def run_bot():
 
     try:
         app.run_webhook(
-            listen='127.0.0.1',
-            port=8443,
-            url_path=bot_token,
-            webhook_url=web_hook_url
+            listen=settings.WEBHOOK_LOCAL_LISTEN_IP,
+            port=settings.WEBHOOK_LOCAL_LISTEN_PORT,
+            url_path=settings.WEBHOOK_URL_PATH,
+            webhook_url=settings.WEBHOOK_URL
         )
     except Exception as e:
         # logger.error(f'{traceback.print_exc()}')
