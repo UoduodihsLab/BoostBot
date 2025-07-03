@@ -92,6 +92,15 @@ async def exec_task(campaign_obj: CampaignModel):
             campaign_obj.repeat_count += 1
             await campaign_obj.save(update_fields=['repeat_count'])
 
+            today = datetime.now(timezone.utc).today()
+            await BoostLinkAccountUsageModel.update_or_create(
+                boost_link_id=boost_link_obj.id,
+                account_id=account_obj.id,
+                defaults={
+                    'boost_at': today
+                }
+            )
+
         elif status == INVALID_ACCOUNT:
             account_obj.status = 1
             await account_obj.save(update_fields=['status'])
