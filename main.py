@@ -63,7 +63,7 @@ def run_bot():
     app.add_handler(CommandHandler('waiting_tasks', waiting_tasks))
     app.add_handler(CommandHandler('completed_tasks', completed_tasks))
     app.add_handler(CommandHandler('task_by_id', query_task_by_id))
-    app.add_handler(CommandHandler('clear_account', clear_accounts))
+    app.add_handler(CommandHandler('clear_accounts', clear_accounts))
 
     app.add_handler(CallbackQueryHandler(boost_links_view, 'boost_links_view'))
     app.add_handler(CallbackQueryHandler(go_back, 'go_back'))

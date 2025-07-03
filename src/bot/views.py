@@ -32,7 +32,10 @@ async def help_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         '助力任务创建输入频道编号示例: 1 2 3\n'
         '根据任务id查询示例: /task_by_id 1 2 3\n'
-        '查询当前活动的任务: /list_tasks'
+        '查询执行中的任务: /running_tasks\n'
+        '查询等待中的任务: /waiting_tasks\n'
+        '查询已完成的任务: /completed_tasks\n'
+        '清空所有账号: /clear_accounts'
     )
 
     await update.message.reply_text(text=text)
