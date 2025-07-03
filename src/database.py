@@ -113,20 +113,30 @@ async def delete_accounts():
 
 
 async def get_next_available_account_today(boost_link_id: int) -> AccountModel | None:
+    """
+    从数据库并发场景下安全地取用账号
+    将所有过滤条件都放在数据库查询中，以避免竞态条件
+    :param boost_link_id: 助力链接id
+    :return:
+    """
     async with in_transaction() as conn:
         now = datetime.now(timezone.utc)
-        today = now.today()
-        used_account_ids_today = [
-            usage.account_id
-            for usage in await BoostLinkAccountUsageModel.filter(boost_link_id=boost_link_id, boost_at=today)
-        ]
+        today = now.date()
+
+        used_account_ids_today = await BoostLinkAccountUsageModel.filter(
+            boost_link_id=boost_link_id,
+            boost_at=today
+        ).values_list('account_id', flat=True)
+
         query = (
-                Q(is_deleted=False)
+                Q(id__not_in=used_account_ids_today)
+                & Q(is_deleted=False)
                 & Q(using_status=0)
                 & Q(status=0)
-                & (Q(flood_expire_at=None) | Q(flood_expire_at__lt=now))
+                & (Q(flood_expire_at__is_null=True) | Q(flood_expire_at__lt=now))
                 & Q(daily_boost_count__lt=5)
         )
+
         account_obj = (
             await AccountModel
             .filter(query)
@@ -136,7 +146,7 @@ async def get_next_available_account_today(boost_link_id: int) -> AccountModel |
             .first()
         )
 
-        if account_obj is not None and account_obj.id not in used_account_ids_today:
+        if account_obj:
             account_obj.using_status = 1
             account_obj.last_used_at = now
             await account_obj.save(using_db=conn, update_fields=['using_status', 'last_used_at'])
