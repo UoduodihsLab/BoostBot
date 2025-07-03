@@ -46,13 +46,13 @@ async def query_task_by_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
         task_ids = list(map(int, args))
     except Exception as e:
         logger.error(e)
-        await context.bot.send_message(update.effective_message.chat_id, text='你的输入包含无效的任务id, 请重新输入')
+        await context.bot.send_message(update.effective_chat.id, text='你的输入包含无效的任务id, 请重新输入')
         return
 
     campaign_objs = await get_campaigns_by_ids(task_ids)
 
     if len(campaign_objs) == 0:
-        await context.bot.send_message(update.effective_message.id, '你输入的任务id没有找到对应的任务')
+        await context.bot.send_message(update.effective_chat.id, '你输入的任务id没有找到对应的任务')
         return
 
     await task_detail_view(update, context, campaign_objs)
