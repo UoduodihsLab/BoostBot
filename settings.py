@@ -3,7 +3,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 TORTOISE_ORM = {
-    "connections": {"default": "asyncpg://postgres:Wdnmd1314159...@127.0.0.1:5432/boosterbotpro"},
+    "connections": {"default": "asyncpg://postgres:Wdnmd1314159...@127.0.0.1:5432/boosterbotprov1"},
     "apps": {
         "models": {
             "models": ["models", "aerich.models"],
@@ -12,7 +12,7 @@ TORTOISE_ORM = {
     },
 }
 
-DB_URL = 'asyncpg://postgres:Wdnmd1314159...@127.0.0.1:5432/boosterbotpro'
+DB_URL = 'asyncpg://postgres:Wdnmd1314159...@127.0.0.1:5432/boosterbotprov1'
 TORTOISE_MODULES = {'models': ['models']}
 
 DB_CONNECTIONS_MAX = 10
