@@ -20,5 +20,5 @@ async def start_boost(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     task = asyncio.create_task(schedule_tasks())
 
-    text = '助力任务已成功启动, 你可以输入命令 /list_tasks 查看活动中的任务实时进度'
+    text = '助力任务已成功启动, 你可以输入命令 /running_tasks 查看执行中的任务实时进度'
     await context.bot.send_message(chat_id=update.effective_chat.id, text=text)
