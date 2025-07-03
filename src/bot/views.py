@@ -86,7 +86,7 @@ async def accounts_statistics_view(update: Update, context: ContextTypes.DEFAULT
     await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
 
 
-async def running_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def running_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await get_running_tasks()
     account_total_count = await get_account_total_count()
 
@@ -110,7 +110,7 @@ async def running_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(update.effective_chat.id, text=text)
 
 
-async def waiting_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def waiting_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await get_waiting_tasks()
     account_total_count = await get_account_total_count()
 
@@ -129,12 +129,12 @@ async def waiting_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
     if text == '':
-        text = '暂无执行中的任务'
+        text = '暂无等待中的任务'
 
     await context.bot.send_message(update.effective_chat.id, text=text)
 
 
-async def completed_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def completed_tasks_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tasks = await get_completed_tasks()
     account_total_count = await get_account_total_count()
 
@@ -153,7 +153,7 @@ async def completed_list_view(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
 
     if text == '':
-        text = '暂无执行中的任务'
+        text = '暂无已完成的任务'
 
     await context.bot.send_message(update.effective_chat.id, text=text)
 
