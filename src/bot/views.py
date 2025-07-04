@@ -5,7 +5,8 @@ from telegram.ext import ContextTypes
 
 from models import *
 from src.bot.navigation import push_navigation_stack
-from src.database import statistics_account, get_running_tasks, get_waiting_tasks, get_completed_tasks, get_available_account_total_count_daily
+from src.database import statistics_account, get_running_tasks, get_waiting_tasks, get_completed_tasks, \
+    get_available_account_total_count_daily
 
 
 @push_navigation_stack
