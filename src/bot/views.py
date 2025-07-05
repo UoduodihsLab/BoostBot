@@ -44,33 +44,42 @@ async def help_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @push_navigation_stack
 async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text = '当前无频道链接, 请上传后再来'
-    keyboard = [
-        [
-            InlineKeyboardButton('返回', callback_data='go_back')
-        ]
-    ]
+    context.chat_data['links_pagination'] = {'page': 0, 'size': 10}
 
-    boost_links = [
-        f'{boost_link_obj.id} - {boost_link_obj.param}'
-        for boost_link_obj in await BoostLinkModel.filter(is_deleted=False)
-    ]
+    page = context.chat_data['links_pagination']['page']
+    size = context.chat_data['links_pagination']['size']
 
-    if boost_links:
-        text = '\n'.join(boost_links)
-        keyboard = [
+    total_count = await BoostLinkModel.filter(is_deleted=False).count()
+    pages = total_count // 10 if total_count // 10 == 0 else total_count // 10 + 1
+
+    keyboard = []
+    pagination_buttons = []
+    op_buttons = []
+    if pages >= page:
+        if pages > page:
+            pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
+
+        op_buttons.append(InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'))
+
+        text = '\n'.join(
             [
-                InlineKeyboardButton('上一页', callback_data='link_last_page'),
-                InlineKeyboardButton('下一页', callback_data='link_next_page')
-            ],
-            [
-                InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
-                InlineKeyboardButton('返回', callback_data='go_back')
+                f'{boost_link_obj.id} - {boost_link_obj.param}'
+                for boost_link_obj
+                in await BoostLinkModel.filter(is_deleted=False).order_by('id').offset(page * size).limit(size)
             ]
-        ]
+        )
+        context.chat_data['links_pagination']['page'] += 1
+    else:
+        text = '当前无频道链接, 请上传后再来'
+
+    op_buttons.append(InlineKeyboardButton('返回', callback_data='go_back'))
+
+    if pagination_buttons:
+        keyboard.append(pagination_buttons)
+
+    keyboard.append(op_buttons)
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-
     await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
 
 
