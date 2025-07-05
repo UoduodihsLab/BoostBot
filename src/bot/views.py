@@ -50,6 +50,7 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton('返回', callback_data='go_back')
         ]
     ]
+
     boost_links = [
         f'{boost_link_obj.id} - {boost_link_obj.param}'
         for boost_link_obj in await BoostLinkModel.filter(is_deleted=False)
@@ -58,6 +59,10 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if boost_links:
         text = '\n'.join(boost_links)
         keyboard = [
+            [
+                InlineKeyboardButton('上一页', callback_data='link_last_page'),
+                InlineKeyboardButton('下一页', callback_data='link_next_page')
+            ],
             [
                 InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
                 InlineKeyboardButton('返回', callback_data='go_back')
