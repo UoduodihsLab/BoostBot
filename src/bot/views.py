@@ -42,29 +42,69 @@ async def help_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text=text)
 
 
-async def links_next_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def links_last_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
     page = context.chat_data['links_pagination']['page']
     size = context.chat_data['links_pagination']['size']
-
     queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
-
     total_count = await queryset.count()
     pages = total_count // size
     mod = total_count % size
-
     if mod != 0:
         pages += 1
 
-    pagination_buttons = [
-        InlineKeyboardButton('上一页', callback_data='links_last_page')
-    ]
+    if pages < 1:
+        text = '当前无频道链接, 请上传后再来'
+        keyboard = [[InlineKeyboardButton('返回', callback_data='go_back')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
+        return
+
+    pagination_buttons = [InlineKeyboardButton('下一页', callback_data='links_next_page')]
+
+    if page - 1 > 0:
+        pagination_buttons.append(InlineKeyboardButton('上一页', callback_data='links_last_page'))
+
+    text = '\n'.join(
+        [
+            f'{boost_link_obj.id} - {boost_link_obj.param}'
+            for boost_link_obj in await queryset.offset((page - 1) * size).limit(size)
+        ]
+    )
+
+    context.chat_data['links_pagination']['page'] -= 1
+
     op_buttons = [
         InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
         InlineKeyboardButton('返回', callback_data='go_back')
     ]
-    if pages >= page + 1:
-        if pages > page:
-            pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
+    keyboard = [pagination_buttons, op_buttons]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
+
+
+async def links_next_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    page = context.chat_data['links_pagination']['page']
+    size = context.chat_data['links_pagination']['size']
+    queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
+    total_count = await queryset.count()
+    pages = total_count // size
+    mod = total_count % size
+    if mod != 0:
+        pages += 1
+
+    if pages < 1:
+        text = '当前无频道链接, 请上传后再来'
+        keyboard = [[InlineKeyboardButton('返回', callback_data='go_back')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
+        return
+
+    pagination_buttons = [
+        InlineKeyboardButton('上一页', callback_data='links_last_page')
+    ]
+    if pages > page + 1:
+        pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
 
     text = '\n'.join(
         [
@@ -74,6 +114,10 @@ async def links_next_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     context.chat_data['links_pagination']['page'] += 1
 
+    op_buttons = [
+        InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
+        InlineKeyboardButton('返回', callback_data='go_back')
+    ]
     keyboard = [pagination_buttons, op_buttons]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -86,41 +130,40 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     page = context.chat_data['links_pagination']['page']
     size = context.chat_data['links_pagination']['size']
-
     queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
-
     total_count = await queryset.count()
     pages = total_count // size
     mod = total_count % size
-
     if mod != 0:
         pages += 1
 
-    keyboard = []
-    pagination_buttons = []
-    op_buttons = []
-    if pages >= page + 1:
-        if pages > page:
-            pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
-
-        op_buttons.append(InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'))
-
-        text = '\n'.join(
-            [
-                f'{boost_link_obj.id} - {boost_link_obj.param}'
-                for boost_link_obj in await queryset.offset(page * size).limit(size)
-            ]
-        )
-        context.chat_data['links_pagination']['page'] += 1
-    else:
+    if pages < 1:
         text = '当前无频道链接, 请上传后再来'
+        keyboard = [[InlineKeyboardButton('返回', callback_data='go_back')]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
+        return
 
-    op_buttons.append(InlineKeyboardButton('返回', callback_data='go_back'))
+    pagination_buttons = []
+    if pages > page + 1:
+        pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
 
+    text = '\n'.join(
+        [
+            f'{boost_link_obj.id} - {boost_link_obj.param}'
+            for boost_link_obj in await queryset.offset(page * size).limit(size)
+        ]
+    )
+    context.chat_data['links_pagination']['page'] += 1
+
+    keyboard = []
     if pagination_buttons:
         keyboard.append(pagination_buttons)
 
-    keyboard.append(op_buttons)
+    keyboard.append([
+        InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
+        InlineKeyboardButton('返回', callback_data='go_back')
+    ])
 
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
