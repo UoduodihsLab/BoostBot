@@ -42,6 +42,44 @@ async def help_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(text=text)
 
 
+async def links_next_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    page = context.chat_data['links_pagination']['page']
+    size = context.chat_data['links_pagination']['size']
+
+    queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
+
+    total_count = await queryset.count()
+    pages = total_count // size
+    mod = total_count % size
+
+    if mod != 0:
+        pages += 1
+
+    pagination_buttons = [
+        InlineKeyboardButton('上一页', callback_data='links_last_page')
+    ]
+    op_buttons = [
+        InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
+        InlineKeyboardButton('返回', callback_data='go_back')
+    ]
+    if pages >= page + 1:
+        if pages > page:
+            pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
+
+    text = '\n'.join(
+        [
+            f'{boost_link_obj.id} - {boost_link_obj.param}'
+            for boost_link_obj in await queryset.offset(page * size).limit(size)
+        ]
+    )
+    context.chat_data['links_pagination']['page'] += 1
+
+    keyboard = [pagination_buttons, op_buttons]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
+
+
 @push_navigation_stack
 async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.chat_data['links_pagination'] = {'page': 0, 'size': 10}
@@ -49,13 +87,19 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     page = context.chat_data['links_pagination']['page']
     size = context.chat_data['links_pagination']['size']
 
-    total_count = await BoostLinkModel.filter(is_deleted=False).count()
-    pages = total_count // 10 if total_count // 10 == 0 else total_count // 10 + 1
+    queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
+
+    total_count = await queryset.count()
+    pages = total_count // size
+    mod = total_count % size
+
+    if mod != 0:
+        pages += 1
 
     keyboard = []
     pagination_buttons = []
     op_buttons = []
-    if pages >= page:
+    if pages >= page + 1:
         if pages > page:
             pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
 
@@ -64,8 +108,7 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text = '\n'.join(
             [
                 f'{boost_link_obj.id} - {boost_link_obj.param}'
-                for boost_link_obj
-                in await BoostLinkModel.filter(is_deleted=False).order_by('id').offset(page * size).limit(size)
+                for boost_link_obj in await queryset.offset(page * size).limit(size)
             ]
         )
         context.chat_data['links_pagination']['page'] += 1

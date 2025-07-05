@@ -23,7 +23,7 @@ from src.bot.commands import (
 from src.bot.conversations import BOOST_CONVERSATION
 from src.bot.navigation import go_back
 from src.bot.upload import handle_upload_boost_link_file, handle_upload_account_file
-from src.bot.views import boost_links_view, accounts_statistics_view
+from src.bot.views import boost_links_view, accounts_statistics_view, links_next_page
 from src.database import connect_db, close_db
 from src.utils.logger import get_console_logger
 
@@ -66,6 +66,7 @@ def run_bot():
     app.add_handler(CommandHandler('clear_accounts', clear_accounts))
 
     app.add_handler(CallbackQueryHandler(boost_links_view, 'boost_links_view'))
+    app.add_handler(CallbackQueryHandler(links_next_page, 'links_next_page'))
     app.add_handler(CallbackQueryHandler(go_back, 'go_back'))
     app.add_handler(CallbackQueryHandler(start_boost, 'start_boost'))
     app.add_handler(CallbackQueryHandler(accounts_statistics_view, 'accounts_statistics_view'))
