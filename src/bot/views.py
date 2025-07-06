@@ -169,12 +169,20 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @push_navigation_stack
 async def accounts_statistics_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    total_count, invalid_count, flood_count, daily_boost_5count = await statistics_account()
+    # a: 账号总量
+    # b: 当前可用
+    # c: 今日限制
+    # d: 助力5次
+    # e: 总冻结量
+    # f: 今日冻结
+    a, b, c, d, e, f = await statistics_account()
 
-    text = (f'账号总量: {total_count}\n'
-            f'冻结总量: {invalid_count}\n'
-            f'限制总量: {flood_count}\n'
-            f'今日限额(满5次助力): {daily_boost_5count}'
+    text = (f'账号总量: {a}\n'
+            f'当前可用: {b}\n'
+            f'今日限制: {c}\n'
+            f'助力5次: {d}\n'
+            f'总冻结量: {e}\n'
+            f'今日冻结: {f}'
             )
 
     keyboard = [

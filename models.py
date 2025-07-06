@@ -17,6 +17,8 @@ class AccountModel(models.Model):
 
     is_deleted = fields.BooleanField(default=False)
 
+    frozen_at = fields.DateField(null=True)
+
     def __str__(self):
         return self.phone
 

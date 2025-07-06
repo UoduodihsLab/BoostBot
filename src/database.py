@@ -76,18 +76,26 @@ async def get_completed_tasks():
 
 
 async def statistics_account():
+    now = datetime.now(timezone.utc)
+    today = now.date()
+
     account_queryset = AccountModel.filter(is_deleted=False)
 
     total_count = await account_queryset.count()
 
-    invalid_count = await account_queryset.filter(status=1).count()
+    available_count = await account_queryset.filter(
+        flood_expire_at__lt=now,
+        daily_boost_count__lt=5,
+        status=0
+    ).count()
 
-    now = datetime.now(timezone.utc)
     flood_count = await account_queryset.filter(flood_expire_at__gt=now, status=0).count()
-
     daily_boost_5count = await account_queryset.filter(daily_boost_count__gte=5, status=0).count()
 
-    return total_count, invalid_count, flood_count, daily_boost_5count
+    total_frozen_count = await account_queryset.filter(status=1).count()
+    frozen_count_today = await account_queryset.filter(frozen_at=today)
+
+    return total_count, available_count, flood_count, daily_boost_5count, total_frozen_count, frozen_count_today
 
 
 async def get_campaigns_by_ids(campaign_ids: List[int]):

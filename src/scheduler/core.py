@@ -72,7 +72,8 @@ async def exec_task(campaign_obj: CampaignModel):
                 await campaign_obj.save(update_fields=['fail_count'])
 
                 account_obj.status = 1
-                await account_obj.save(update_fields=['status'])
+                account_obj.frozen_at = datetime.now(timezone.utc).date()
+                await account_obj.save(update_fields=['status', 'frozen_at'])
 
             elif status == FLOOD:
                 campaign_obj.fail_count += 1
