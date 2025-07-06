@@ -83,11 +83,12 @@ async def statistics_account():
 
     total_count = await account_queryset.count()
 
-    available_count = await account_queryset.filter(
-        flood_expire_at__lt=now,
-        daily_boost_count__lt=5,
-        status=0
-    ).count()
+    a_query = (
+            (Q(flood_expire_at__lt=now) | Q(flood_expire_at=None))
+            & Q(daily_boost_count__lt=5)
+            & Q(status=0)
+    )
+    available_count = await account_queryset.filter(a_query).count()
 
     flood_count = await account_queryset.filter(flood_expire_at__gt=now, status=0).count()
     daily_boost_5count = await account_queryset.filter(daily_boost_count__gte=5, status=0).count()
