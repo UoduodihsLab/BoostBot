@@ -43,6 +43,7 @@ async def help_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def links_last_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.chat_data['links_pagination']['page'] -= 1
     page = context.chat_data['links_pagination']['page']
     size = context.chat_data['links_pagination']['size']
     queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
@@ -59,19 +60,18 @@ async def links_last_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
         return
 
-    pagination_buttons = [InlineKeyboardButton('下一页', callback_data='links_next_page')]
-
-    if page - 1 > 0:
-        pagination_buttons.append(InlineKeyboardButton('上一页', callback_data='links_last_page'))
-
     text = '\n'.join(
         [
             f'{boost_link_obj.id} - {boost_link_obj.param}'
-            for boost_link_obj in await queryset.offset((page - 1) * size).limit(size)
+            for boost_link_obj in await queryset.offset(page * size).limit(size)
         ]
     )
 
-    context.chat_data['links_pagination']['page'] -= 1
+    pagination_buttons = []
+    if page > 0:
+        pagination_buttons.append(InlineKeyboardButton('上一页', callback_data='links_last_page'))
+
+    pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
 
     op_buttons = [
         InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
@@ -84,6 +84,7 @@ async def links_last_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def links_next_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.chat_data['links_pagination']['page'] += 1
     page = context.chat_data['links_pagination']['page']
     size = context.chat_data['links_pagination']['size']
     queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
@@ -100,19 +101,18 @@ async def links_next_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
         return
 
-    pagination_buttons = [
-        InlineKeyboardButton('上一页', callback_data='links_last_page')
-    ]
-    if pages > page + 1:
-        pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
-
     text = '\n'.join(
         [
             f'{boost_link_obj.id} - {boost_link_obj.param}'
             for boost_link_obj in await queryset.offset(page * size).limit(size)
         ]
     )
-    context.chat_data['links_pagination']['page'] += 1
+
+    pagination_buttons = [
+        InlineKeyboardButton('上一页', callback_data='links_last_page')
+    ]
+    if pages > page + 1:
+        pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
 
     op_buttons = [
         InlineKeyboardButton('创建助力任务', callback_data='on_create_boost_task'),
@@ -127,7 +127,6 @@ async def links_next_page(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @push_navigation_stack
 async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.chat_data['links_pagination'] = {'page': 0, 'size': 10}
-
     page = context.chat_data['links_pagination']['page']
     size = context.chat_data['links_pagination']['size']
     queryset = BoostLinkModel.filter(is_deleted=False).order_by('id')
@@ -144,17 +143,16 @@ async def boost_links_view(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.callback_query.edit_message_text(text=text, reply_markup=reply_markup)
         return
 
-    pagination_buttons = []
-    if pages > page + 1:
-        pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
-
     text = '\n'.join(
         [
             f'{boost_link_obj.id} - {boost_link_obj.param}'
             for boost_link_obj in await queryset.offset(page * size).limit(size)
         ]
     )
-    context.chat_data['links_pagination']['page'] += 1
+
+    pagination_buttons = []
+    if pages > page + 1:
+        pagination_buttons.append(InlineKeyboardButton('下一页', callback_data='links_next_page'))
 
     keyboard = []
     if pagination_buttons:
