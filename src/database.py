@@ -93,7 +93,7 @@ async def statistics_account():
     daily_boost_5count = await account_queryset.filter(daily_boost_count__gte=5, status=0).count()
 
     total_frozen_count = await account_queryset.filter(status=1).count()
-    frozen_count_today = await account_queryset.filter(frozen_at=today)
+    frozen_count_today = await account_queryset.filter(frozen_at=today).count()
 
     return total_count, available_count, flood_count, daily_boost_5count, total_frozen_count, frozen_count_today
 
