@@ -10,6 +10,8 @@ from src.worker.booster import Booster
 
 logger = get_console_logger()
 
+background_tasks = set()
+
 
 async def exec_task(campaign_obj: CampaignModel):
     now = datetime.now(timezone.utc)
@@ -106,9 +108,7 @@ async def exec_task(campaign_obj: CampaignModel):
 async def schedule_tasks():
     campaign_objs = await CampaignModel.filter(status=0)
 
-    tasks = []
     for campaign_obj in campaign_objs:
         t = asyncio.create_task(exec_task(campaign_obj))
-        tasks.append(t)
-
-    await asyncio.gather(*tasks)
+        background_tasks.add(t)
+        t.add_done_callback(background_tasks.discard)
