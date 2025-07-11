@@ -32,7 +32,8 @@ async def unzip_account_files(zip_file_path: str):
             for member in zip_ref.infolist():
                 if not member.filename.endswith('.session'):
                     continue
-                phone = os.path.split(member.filename)[0].split('/')[0]
+                filename = os.path.split(member.filename)[-1]
+                phone = os.path.splitext(filename)[0]
                 session_path = os.path.join(sessions_dir, member.filename)
 
                 logger.info(f'{phone} - {session_path}')
